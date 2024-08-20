@@ -1,6 +1,6 @@
 import requests
-from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
+from geopy.geocoders import Nominatim
 
 
 def get_coordinates(address):
@@ -9,7 +9,7 @@ def get_coordinates(address):
     if location:
         return (location.latitude, location.longitude)
     else:
-        raise ValueError("Nie udało się znaleźć współrzędnych dla adresu: " + address)
+        raise ValueError(f"Unable to find coordinates for address: {address}")
 
 def count_specific_pois(lat, lon, radius=500):
     overpass_url = "http://overpass-api.de/api/interpreter"
@@ -30,21 +30,10 @@ def get_city_center_coords(city_name):
     if location:
         return (location.latitude, location.longitude)
     else:
-        raise ValueError("Nie udało się znaleźć współrzędnych dla miasta: " + city_name)
+        raise ValueError(f"Unable to find coordinates for city: {city_name}")
 
 def distance_from_city_center(address, city_name):
     address_coords = get_coordinates(address)
     city_center_coords = get_city_center_coords(city_name)
     distance = geodesic(address_coords, city_center_coords).kilometers
     return distance
-
-
-address = "Prosta 6, Wrocław"
-city_name = "Wrocław"
-coords = get_coordinates(address)
-poi_count = count_specific_pois(coords[0], coords[1])
-distance = distance_from_city_center(address, city_name)
-
-print(f"Współrzędne: {coords}")
-print(f"Liczba wybranych POI w promieniu 500m: {poi_count}")
-print(f"Odległość od centrum miasta: {distance:.2f} km")

@@ -1,6 +1,9 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.text import slugify
+from simple_history.models import HistoricalRecords
+
+from .utils import get_coordinates, count_specific_pois, distance_from_city_center
 
 
 class Property(models.Model):
@@ -12,7 +15,7 @@ class Property(models.Model):
 
     OWNERSHIP_CHOICES = [
         ('condominium', 'Condominium'),
-        ('udział', 'Udział'),
+        ('share', 'Share'),
         ('cooperative', 'Cooperative')
     ]
 
@@ -24,7 +27,9 @@ class Property(models.Model):
     title = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     description = models.TextField(blank=True, null=True)
-    address = models.CharField(max_length=255)
+    street = models.CharField(max_length=255)
+    house_number = models.CharField(max_length=50, blank=True, null=True)
+    apartment_number = models.CharField(max_length=50, blank=True, null=True)
     city = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=20)
     type = models.CharField(max_length=100, choices=BUILDING_TYPE_CHOICES)
@@ -33,10 +38,10 @@ class Property(models.Model):
     floor = models.IntegerField()
     floor_count = models.IntegerField()
     build_year = models.IntegerField()
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    centre_distance = models.DecimalField(max_digits=10, decimal_places=2)
-    poi_count = models.IntegerField()
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=False)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=False)
+    centre_distance = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=False)
+    poi_count = models.IntegerField(blank=True, null=False)
     school_distance = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     clinic_distance = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     post_office_distance = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -55,14 +60,31 @@ class Property(models.Model):
     suggested_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     images = models.ManyToManyField('PropertyImage', blank=True, related_name='properties')
+    history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+
+        address = f"{self.street} {self.house_number}, {self.city}"
+        if address and self.city:
+            try:
+                self.latitude, self.longitude = get_coordinates(address)
+            except ValueError as e:
+                raise ValueError(f"Failed to retrieve coordinates: {str(e)}")
+
+            try:
+                self.centre_distance = distance_from_city_center(address, self.city)
+            except ValueError as e:
+                raise ValueError(f"Failed to calculate distance from city center: {str(e)}")
+
+            if self.latitude and self.longitude:
+                self.poi_count = count_specific_pois(self.latitude, self.longitude)
+
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.title or 'Property'}, {self.city}, {self.address}, {self.zip_code or 'No Zip Code'}"
+        return f"{self.title or 'Property'}, {self.city}"
 
     class Meta:
         ordering = ['-created_at']

@@ -35,10 +35,10 @@ class FavoritesAdd(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = PropertySerializer
 
-    def perform_create(self, serializer):
+    def post(self, request, *args, **kwargs):
         slug = self.kwargs.get('slug')
         property_instance = get_object_or_404(Property, slug=slug)
-        favorite_property, created = FavoriteProperty.objects.get_or_create(user=self.request.user)
+        favorite_property, created = FavoriteProperty.objects.get_or_create(user=request.user)
 
         if property_instance not in favorite_property.properties.all():
             favorite_property.properties.add(property_instance)
@@ -61,3 +61,8 @@ class FavoritesRemove(generics.DestroyAPIView):
             return Response({"message": "Property removed from favorites."}, status=status.HTTP_200_OK)
         else:
             return Response({"message": "Property not found in favorites."}, status=status.HTTP_404_NOT_FOUND)
+
+
+class AddProperty(generics.CreateAPIView):
+    queryset = Property.objects.all()
+    serializer_class = PropertySerializer
