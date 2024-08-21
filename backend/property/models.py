@@ -59,7 +59,8 @@ class Property(models.Model):
     price = models.DecimalField(max_digits=12, decimal_places=2)
     suggested_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    images = models.ManyToManyField('PropertyImage', blank=True, related_name='properties')
+    images = models.ManyToManyField('PropertyImage', blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
@@ -67,7 +68,7 @@ class Property(models.Model):
             self.slug = slugify(self.title)
 
         address = f"{self.street} {self.house_number}, {self.city}"
-        if address and self.city:
+        if self.city:
             try:
                 self.latitude, self.longitude = get_coordinates(address)
             except ValueError as e:
@@ -100,7 +101,6 @@ class PropertyImage(models.Model):
 class FavoriteProperty(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorite_properties')
     properties = models.ManyToManyField(Property, related_name='favorited_by')
-    added_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.username}'s Favorite Properties"

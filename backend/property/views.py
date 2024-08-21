@@ -1,10 +1,11 @@
 from django.shortcuts import get_object_or_404
+from jupyterlab_server import slugify
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 
-from .models import FavoriteProperty
-from .models import Property
-from .serializers import PropertyListSerializer, PropertySerializer
+from .models import Property, FavoriteProperty
+from .serializers import PropertyListSerializer, PropertySerializer, FavoritePropertySerializer
 
 
 class PropertyListView(generics.ListAPIView):
@@ -23,12 +24,11 @@ class SinglePropertyView(generics.RetrieveAPIView):
 
 
 class FavoritesList(generics.ListAPIView):
-    serializer_class = PropertyListSerializer
+    serializer_class = FavoritePropertySerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return FavoriteProperty.objects.filter(user=user)
+        return FavoriteProperty.objects.filter(user=self.request.user)
 
 
 class FavoritesAdd(generics.CreateAPIView):
@@ -50,19 +50,53 @@ class FavoritesAdd(generics.CreateAPIView):
 class FavoritesRemove(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = PropertySerializer
+    lookup_field = 'slug'
 
-    def delete(self, request, *args, **kwargs):
-        slug = self.kwargs.get('slug')
-        property_instance = get_object_or_404(Property, slug=slug)
-        favorite_property = get_object_or_404(FavoriteProperty, user=request.user)
+    def get_queryset(self):
+        return Property.objects.filter(favorited_by__user=self.request.user)
 
-        if property_instance in favorite_property.properties.all():
-            favorite_property.properties.remove(property_instance)
-            return Response({"message": "Property removed from favorites."}, status=status.HTTP_200_OK)
-        else:
-            return Response({"message": "Property not found in favorites."}, status=status.HTTP_404_NOT_FOUND)
+    def perform_destroy(self, instance):
+        favorite_property = get_object_or_404(FavoriteProperty, user=self.request.user)
+        favorite_property.properties.remove(instance)
+
+
+class UserProperties(generics.ListAPIView):
+    serializer_class = PropertyListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Property.objects.filter(owner=self.request.user)
 
 
 class AddProperty(generics.CreateAPIView):
     queryset = Property.objects.all()
     serializer_class = PropertySerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+class UpdateProperty(generics.UpdateAPIView):
+    serializer_class = PropertySerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        return Property.objects.filter(owner=self.request.user)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+
+class RemoveProperty(generics.DestroyAPIView):
+    serializer_class = PropertySerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        return Property.objects.filter(owner=self.request.user)
