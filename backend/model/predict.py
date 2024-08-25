@@ -6,25 +6,26 @@ model = joblib.load('apartment_price_model.joblib')
 
 def get_user_input():
     data = {
-        'city': 'Wroclaw',
-        'type': 'blockOfFlats',
-        'squareMeters': 92.0,
-        'rooms': 2.0,
-        'floor': 4.0,
-        'floorCount': 4.0,
-        'buildYear': 1960,
-        'latitude': 51.094835,
-        'longitude': 16.990351,
-        'centreDistance': 3.5,
-        'poiCount': 35,
-        'ownership': 'condominium',
-        'condition': 'premium',
-        'hasParkingSpace': 0,
-        'hasBalcony': 1,
-        'hasElevator': 0,
-        'hasSecurity': 0,
-        'hasStorageRoom': 1
+        "city": "wroclaw",
+        "type": "blockOfFlats",
+        "squareMeters": 52.0,
+        "rooms": 2.0,
+        "floor": 1.0,
+        "floorCount": 4.0,
+        "buildYear": 2018,
+        "latitude": 51.094824,
+        "longitude": 16.990635,
+        "centreDistance": 2.1,
+        "poiCount": 35,
+        "ownership": "condominium",
+        "condition": "low",
+        "hasParkingSpace": 0,
+        "hasBalcony": 1,
+        "hasElevator": 0,
+        "hasSecurity": 0,
+        "hasStorageRoom": 0
     }
+
 
     return pd.DataFrame([data])
 

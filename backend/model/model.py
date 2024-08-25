@@ -51,7 +51,7 @@ class ApartmentPriceModel:
         numeric_features = ['squareMeters', 'rooms', 'floor', 'floorCount', 'buildYear', 'latitude', 'longitude',
                             'centreDistance', 'poiCount']
         bool_features = ['hasParkingSpace', 'hasBalcony', 'hasElevator', 'hasSecurity', 'hasStorageRoom']
-        categorical_features = ['city', 'type', 'ownership']
+        categorical_features = ['city', 'type', 'ownership', 'condition']
 
         numeric_transformer = Pipeline(steps=[
             ('imputer', SimpleImputer(strategy='median')),

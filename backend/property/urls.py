@@ -1,10 +1,11 @@
 from django.urls import path
 
 from .views import (PropertyListView, SinglePropertyView, FavoritesList, FavoritesAdd, FavoritesRemove,
-                    AddProperty, RemoveProperty, UpdateProperty, UserProperties)
+                    AddProperty, RemoveProperty, UpdateProperty, UserProperties, PredictPrice)
 
 urlpatterns = [
     path('', PropertyListView.as_view(), name='property_list'),
+    path('predict/', PredictPrice.as_view(), name='predict_price'),
 
     path('my/', UserProperties.as_view(), name='user_properties'),
     path('add/', AddProperty.as_view(), name='add_property'),

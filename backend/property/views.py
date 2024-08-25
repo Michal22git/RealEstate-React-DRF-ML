@@ -6,6 +6,11 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 from .models import Property, FavoriteProperty
 from .serializers import PropertyListSerializer, PropertySerializer, FavoritePropertySerializer
+import pandas as pd
+import joblib
+from rest_framework.views import APIView
+from .utils import predict_price
+
 
 
 class PropertyListView(generics.ListAPIView):
@@ -100,3 +105,35 @@ class RemoveProperty(generics.DestroyAPIView):
 
     def get_queryset(self):
         return Property.objects.filter(owner=self.request.user)
+
+
+class PredictPrice(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            data = {
+                'city': request.data.get('city'),
+                'type': request.data.get('type'),
+                'squareMeters': float(request.data.get('squareMeters')),
+                'rooms': float(request.data.get('rooms')),
+                'floor': float(request.data.get('floor')),
+                'floorCount': float(request.data.get('floorCount')),
+                'buildYear': int(request.data.get('buildYear')),
+                'latitude': float(request.data.get('latitude')),
+                'longitude': float(request.data.get('longitude')),
+                'centreDistance': float(request.data.get('centreDistance')),
+                'poiCount': int(request.data.get('poiCount')),
+                'ownership': request.data.get('ownership'),
+                'condition': request.data.get('condition'),
+                'hasParkingSpace': int(request.data.get('hasParkingSpace')),
+                'hasBalcony': int(request.data.get('hasBalcony')),
+                'hasElevator': int(request.data.get('hasElevator')),
+                'hasSecurity': int(request.data.get('hasSecurity')),
+                'hasStorageRoom': int(request.data.get('hasStorageRoom'))
+            }
+
+            predicted_price = predict_price(data)
+            return Response({'predicted_price': predicted_price}, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

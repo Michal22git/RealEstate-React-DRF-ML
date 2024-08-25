@@ -1,3 +1,5 @@
+import joblib
+import pandas as pd
 import requests
 from geopy.distance import geodesic
 from geopy.geocoders import Nominatim
@@ -37,3 +39,14 @@ def distance_from_city_center(address, city_name):
     city_center_coords = get_city_center_coords(city_name)
     distance = geodesic(address_coords, city_center_coords).kilometers
     return distance
+
+def predict_price(data):
+    try:
+        input_data = pd.DataFrame([data])
+        model = joblib.load('model/apartment_price_model.joblib')
+        predicted_price = model.predict(input_data)[0]
+        rounded_price = round(predicted_price, 2)
+
+        return rounded_price
+    except Exception as e:
+        raise ValueError(f"Failed to predict price: {str(e)}")

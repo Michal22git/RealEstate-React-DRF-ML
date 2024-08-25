@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
 
-from .utils import get_coordinates, count_specific_pois, distance_from_city_center
+from .utils import get_coordinates, count_specific_pois, distance_from_city_center, predict_price
 
 
 class Property(models.Model):
@@ -74,6 +74,32 @@ class Property(models.Model):
 
             if self.latitude and self.longitude:
                 self.poi_count = count_specific_pois(self.latitude, self.longitude)
+
+        data = {
+            'city': self.city.lower(),
+            'type': self.type,
+            'squareMeters': float(self.square_meters),
+            'rooms': float(self.rooms),
+            'floor': float(self.floor),
+            'floorCount': float(self.floor_count),
+            'buildYear': int(self.build_year),
+            'latitude': float(self.latitude),
+            'longitude': float(self.longitude),
+            'centreDistance': float(self.centre_distance),
+            'poiCount': int(self.poi_count),
+            'ownership': self.ownership,
+            'condition': self.condition,
+            'hasParkingSpace': int(self.has_parking_space),
+            'hasBalcony': int(self.has_balcony),
+            'hasElevator': int(self.has_elevator),
+            'hasSecurity': int(self.has_security),
+            'hasStorageRoom': int(self.has_storage_room)
+        }
+
+        try:
+            self.suggested_price = predict_price(data)
+        except ValueError as e:
+            raise ValueError(f"Failed to predict suggested price: {str(e)}")
 
         super().save(*args, **kwargs)
 
