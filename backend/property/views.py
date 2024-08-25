@@ -1,22 +1,22 @@
 from django.shortcuts import get_object_or_404
-from jupyterlab_server import slugify
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, permissions, status
-from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from .filters import PropertyFilter
 from .models import Property, FavoriteProperty
 from .serializers import PropertyListSerializer, PropertySerializer, FavoritePropertySerializer
-import pandas as pd
-import joblib
-from rest_framework.views import APIView
 from .utils import predict_price
-
 
 
 class PropertyListView(generics.ListAPIView):
     queryset = Property.objects.all()
     serializer_class = PropertyListSerializer
     permission_classes = [permissions.AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PropertyFilter
 
 
 class SinglePropertyView(generics.RetrieveAPIView):
