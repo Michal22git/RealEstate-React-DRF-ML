@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -34,3 +35,16 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password']
         )
         return user
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Dodaj niestandardowe dane
+        token['username'] = user.username
+        token['email'] = user.email
+        token['date_joined'] = user.date_joined.isoformat()
+
+        return token
