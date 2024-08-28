@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import '../App.css';
 import AuthModal from './AuthModal';
 import { useNavigate } from 'react-router-dom';
+import AppraiseModal from './AppraiseModal';
 
 const Header = () => {
   const { isAuthenticated, logout } = useAuth();
@@ -11,6 +12,7 @@ const Header = () => {
   const [modalMode, setModalMode] = useState('login');
   const [authState, setAuthState] = useState(isAuthenticated);
   const navigate = useNavigate();
+  const [appraiseModalIsOpen, setAppraiseModalIsOpen] = useState(false);
 
   useEffect(() => {
     setAuthState(isAuthenticated);
@@ -27,6 +29,10 @@ const Header = () => {
     setModalIsOpen(true);
   };
 
+  const openAppraiseModal = () => {
+    setAppraiseModalIsOpen(true);
+  };
+
   return (
     <>
       <header className="header">
@@ -35,6 +41,7 @@ const Header = () => {
             <Link to="/">Real Estate App</Link>
           </h1>
           <nav>
+            <button onClick={openAppraiseModal}>Appraise the property</button>
             {authState ? (
               <>
                 <Link to="/profile">Profile</Link>
@@ -54,6 +61,10 @@ const Header = () => {
           setModalIsOpen(false); 
           setAuthState(true);
         }}
+      />
+      <AppraiseModal
+        isOpen={appraiseModalIsOpen}
+        onRequestClose={() => setAppraiseModalIsOpen(false)}
       />
     </>
   );

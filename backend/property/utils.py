@@ -40,6 +40,7 @@ def distance_from_city_center(address, city_name):
     distance = geodesic(address_coords, city_center_coords).kilometers
     return distance
 
+
 def predict_price(data):
     try:
         input_data = pd.DataFrame([data])

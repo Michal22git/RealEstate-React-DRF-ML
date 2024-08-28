@@ -42,7 +42,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
 
-        # Dodaj niestandardowe dane
         token['username'] = user.username
         token['email'] = user.email
         token['date_joined'] = user.date_joined.isoformat()

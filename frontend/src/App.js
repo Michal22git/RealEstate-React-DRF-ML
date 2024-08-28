@@ -5,6 +5,10 @@ import Header from './components/Header';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
 import PrivateRoute from './components/PrivateRoute';
+import Modal from 'react-modal';
+
+
+Modal.setAppElement('#root');
 
 function App() {
   return (

@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from .filters import PropertyFilter
 from .models import Property, FavoriteProperty
 from .serializers import PropertyListSerializer, PropertySerializer, FavoritePropertySerializer
-from .utils import predict_price
+from .utils import get_coordinates, count_specific_pois, distance_from_city_center, predict_price
 
 
 class PropertyListView(generics.ListAPIView):
@@ -112,18 +112,27 @@ class PredictPrice(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
+            street = request.data.get('street')
+            house_number = request.data.get('houseNumber')
+            city = request.data.get('city')
+            address = f"{street} {house_number}, {city}"
+
+            latitude, longitude = get_coordinates(address)
+            centre_distance = distance_from_city_center(address, city)
+            poi_count = count_specific_pois(latitude, longitude)
+
             data = {
-                'city': request.data.get('city'),
+                'city': city,
                 'type': request.data.get('type'),
                 'squareMeters': float(request.data.get('squareMeters')),
                 'rooms': float(request.data.get('rooms')),
                 'floor': float(request.data.get('floor')),
                 'floorCount': float(request.data.get('floorCount')),
                 'buildYear': int(request.data.get('buildYear')),
-                'latitude': float(request.data.get('latitude')),
-                'longitude': float(request.data.get('longitude')),
-                'centreDistance': float(request.data.get('centreDistance')),
-                'poiCount': int(request.data.get('poiCount')),
+                'latitude': latitude,
+                'longitude': longitude,
+                'centreDistance': centre_distance,
+                'poiCount': poi_count,
                 'ownership': request.data.get('ownership'),
                 'condition': request.data.get('condition'),
                 'hasParkingSpace': int(request.data.get('hasParkingSpace')),
